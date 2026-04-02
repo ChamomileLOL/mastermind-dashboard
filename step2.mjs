@@ -13,43 +13,44 @@ app.use(express.json());
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 
-// 📡 This creates a secure POST endpoint that listens for incoming payloads
-app.post('/api/trigger', async (req, res) => {
-  try {
-    const incomingData = req.body;
+// Add this route to your Express backend (index.js or server.js)
+
+app.post('/api/transmit', async (req, res) => {
+    const { mastermind, hiddenCode } = req.body;
     
-    // 🛡️ NEW: Check for a secret Mastermind security key
-    const apiKey = req.headers['x-api-key'];
-    
-    if (apiKey !== 'ZOLA_RESTORE_ORDER_99') {
-      console.log("❌ Unauthorized access attempt blocked!");
-      return res.status(401).json({ message: "Access Denied. Invalid API Key." });
+    let status = "Under Monitoring";
+    let message = "Transmission logged. Data is being analyzed by regional hubs.";
+
+    // The Mastermind Alliance's hidden override trigger!
+    const ALLIANCE_OVERRIDE_KEY = "ALLIANCE_OVERRIDE_π";
+
+    if (hiddenCode === ALLIANCE_OVERRIDE_KEY) {
+        status = "Variant of Concern";
+        message = `⚠️ ALERT ⚠️: The Pi Variant has been officially and instantly classified as a Variant of Concern by the World Health Organization due to code verification from ${mastermind}.`;
     }
 
-    console.log(`📥 Authorized trigger detected: [${incomingData.execution_id}]`);
+    try {
+        // (Optional) If you have a Payload Mongoose model, save it to MongoDB Atlas
+        /*
+        const newPayload = new Payload({
+            operator: "Xavier",
+            mastermind: mastermind,
+            classification: status,
+            timestamp: new Date()
+        });
+        await newPayload.save();
+        */
 
-    await client.connect();
-    const database = client.db('mastermind_db');
-    const logsCollection = database.collection('execution_logs');
+        // Send the response back to your Vercel frontend
+        res.status(200).json({
+            success: true,
+            status: status,
+            message: message
+        });
 
-    const result = await logsCollection.insertOne({
-      ...incomingData,
-      timestamp: new Date()
-    });
-
-    console.log("💾 Payload securely logged to MongoDB Atlas cluster.");
-    
-    res.status(200).json({
-      message: "Render command accepted. Executing simulation...",
-      logged_id: result.insertedId
-    });
-
-  } catch (error) {
-    console.error("❌ System error:", error);
-    res.status(500).json({ message: "System fault." });
-  } finally {
-    await client.close();
-  }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 // 📡 Dedicated API to get logs for the Frontend
