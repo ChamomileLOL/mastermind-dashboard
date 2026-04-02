@@ -1,0 +1,9 @@
+# Sensitive environment variables
+.env
+
+# Dependency folders (massive folders we don't need to upload)
+node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db
